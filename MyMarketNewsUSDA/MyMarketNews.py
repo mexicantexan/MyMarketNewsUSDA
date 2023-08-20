@@ -114,7 +114,7 @@ class MyMarketNews(API_Key):
                 _key_holder.append(_data[i].keys())
                 return _key_holder
 
-    def description(self, slud_id):
+    def get_report_description(self, slud_id):
         """
         return a description of a given report 
         """
@@ -165,20 +165,21 @@ class MyMarketNews(API_Key):
         URL = "https://marsapi.ams.usda.gov/services/v1.2/reports/" + slug_id
         response = requests.get(URL, auth=HTTPBasicAuth(self.api_key, "none"))
         data = response.json()
-
-        Butter = []
-        Date_Butter = []
-        Cheese = []
-        Date_Cheese = []
-
-        x = data["results"]
-
-        for i in range(len(x)):
-            if x[i]["commodity"] == "Butter":
-                Butter.append(x[i]["holdings_current_lbs"])
-                Date_Butter.append(x[i]["published_date"])
-            else:
-                Cheese.append(x[i]["holdings_current_lbs"])
-                Date_Cheese.append(x[i]["published_date"])
-
-        print(Butter)
+        print(f"Data for {slug_id} has been fetched")
+        print(f"{data=}")
+        # Butter = []
+        # Date_Butter = []
+        # Cheese = []
+        # Date_Cheese = []
+        #
+        # x = data["results"]
+        #
+        # for i in range(len(x)):
+        #     if x[i]["commodity"] == "Butter":
+        #         Butter.append(x[i]["holdings_current_lbs"])
+        #         Date_Butter.append(x[i]["published_date"])
+        #     else:
+        #         Cheese.append(x[i]["holdings_current_lbs"])
+        #         Date_Cheese.append(x[i]["published_date"])
+        #
+        # print(Butter)
