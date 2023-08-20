@@ -1,13 +1,15 @@
 """ 
-<<Made by @Noremax59, i think?>>
+Author: Noremax59
 
 Anyone who says bureaucracy moves slow has never had to use the MMN API, they change something every 
 week that breaks this package. 
 """
+from typing import Union
 
 import requests
 from requests.auth import HTTPBasicAuth
 from APIKey import API_Key
+
 
 class MyMarketNews(API_Key):
 
@@ -25,14 +27,14 @@ class MyMarketNews(API_Key):
         if not isinstance(slug_id, str):
             raise TypeError(f"slug_id must be a string")
 
-        _url: str = "https://marsapi.ams.usda.gov/services/v1.2/reports/" 
+        _url: str = "https://marsapi.ams.usda.gov/services/v1.2/reports/"
         _url += slug_id
 
-        _response = requests.get(_url, auth=HTTPBasicAuth(username = self.api_key, password = "none"))
+        _response = requests.get(_url, auth=HTTPBasicAuth(username=self.api_key, password="none"))
         _key_list = list(_response.json().keys())
 
         if _key_list[1] == "message":
-             return f"A report for {slug_id} does not exist"  
+            return f"A report for {slug_id} does not exist"
 
         elif _key_list[1] == "result":
             return f"A report for {slug_id} does exist"
@@ -40,8 +42,7 @@ class MyMarketNews(API_Key):
         else:
             return f"You entered an invalid slug id: {slug_id}"
 
-
-    def date_check(self, slug_id, date_checker) -> list:
+    def date_check(self, slug_id, date_checker) -> Union[str, list]:
         """
         returns either the most recent report_begin_date of the slug id provided
         or can provide of full list of report_begin_date's of the slug id provided
@@ -56,14 +57,14 @@ class MyMarketNews(API_Key):
         I've figure out how to check is the date_checker is correct but I need to implement a check for the slug_id
         which could be similar to slug_check.
         """
-        
-        if not isinstance((slug_id or date_checker), str): 
+
+        if not isinstance((slug_id or date_checker), str):
             raise TypeError(f"Make sure both {slug_id} and {date_checker} are both strings")
 
         _url = "https://marsapi.ams.usda.gov/services/v1.2/reports/"
         _url += slug_id
 
-        _response = requests.get(_url, auth=HTTPBasicAuth(username = self.api_key, password = "none"))
+        _response = requests.get(_url, auth=HTTPBasicAuth(username=self.api_key, password="none"))
         _data = _response.json()
 
         date_holder = []
@@ -79,7 +80,7 @@ class MyMarketNews(API_Key):
             for i in range(len(alldates)):
                 if alldates[i]["report_begin_date"] in date_holder:
                     pass
-                else: 
+                else:
                     date_holder.append(alldates[i]["report_begin_date"])
 
             return date_holder
@@ -95,9 +96,9 @@ class MyMarketNews(API_Key):
         if not isinstance(slug_id, str):
             raise TypeError(f"Make sure {slug_id} is a string")
 
-        _url = "https://marsapi.ams.usda.gov/services/v1.2/reports/" 
+        _url = "https://marsapi.ams.usda.gov/services/v1.2/reports/"
         _url += slug_id
-        _response = requests.get(_url, auth=HTTPBasicAuth(self.api_key, password = "none"))
+        _response = requests.get(_url, auth=HTTPBasicAuth(self.api_key, password="none"))
         _data = _response.json()
 
         _data = _data["results"]
@@ -113,7 +114,7 @@ class MyMarketNews(API_Key):
                 _key_holder.append(_data[i].keys())
                 return _key_holder
 
-    def description(self, slud_id) -> str:
+    def description(self, slud_id):
         """
         return a description of a given report 
         """
@@ -121,18 +122,18 @@ class MyMarketNews(API_Key):
         if not isinstance(slud_id, str):
             raise TypeError(f"slug_id must be a string")
 
-    def current_reports(self, txt = None) -> list:
+    def current_reports(self, txt=None) -> list:
         """
         Add functionality that will allow this data to be printed to a writable to a .txt file
         :return: returns the slug_id and published date of every report 
         """
         _url = "https://marsapi.ams.usda.gov/services/v1.2/reports/"
-        response = requests.get(_url, auth=HTTPBasicAuth(username = self.api_key, password = "none"))
+        response = requests.get(_url, auth=HTTPBasicAuth(username=self.api_key, password="none"))
         data = response.json()
 
         _current_reports = []
 
-        for i in range(len(list(data))): 
+        for i in range(len(list(data))):
             _current_reports.append(data[i]["slug_id"] + " " + data[i]["published_date"])
 
         return _current_reports
@@ -147,14 +148,13 @@ class MyMarketNews(API_Key):
         :return:
         """
         URL = "https://marsapi.ams.usda.gov/services/v1.2/reports/" + slug_id + "?q=report_begin_date=" + begin_date
-        response = requests.get(URL, auth=HTTPBasicAuth(username = self.api_key, password = "none"))
+        response = requests.get(URL, auth=HTTPBasicAuth(username=self.api_key, password="none"))
         data = response.json()
 
         x = data["results"]
 
         for i in range(len(x)):
             print(x[i][key])
-
 
     def time_series(self, slug_id):
         """
