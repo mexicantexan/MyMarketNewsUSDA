@@ -6,5 +6,5 @@ To use this wrapper, you will need to obtain an API key from the USDA. You can d
 https://mymarketnews.ams.usda.gov/mymarketnews-api/authentication
 
 Once you have your API key, you can use this wrapper to access the USDA's My Market News API by either passing the api 
-key as an environment variable `API_KEY` (preferred), or by hard-coding it into the `constants.py` file, or by passing it into
-the `MyMarketNews` class as an argument.
+key as an environment variable `MY_MARKET_NEWS_API_KEY` (preferred), or by hard-coding it into the `constants.py` file,
+or by passing it into the `MyMarketNews` class as an argument.
