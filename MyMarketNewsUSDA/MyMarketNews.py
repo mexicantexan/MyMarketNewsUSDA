@@ -7,7 +7,7 @@ week that breaks this package.
 import datetime
 import pandas as pd
 
-from constants import API_BASE_URL
+from constants import REPORT_API_BASE_URL
 from MyMarketNewsUSDA.ApiBase import ApiBase
 
 
@@ -29,7 +29,7 @@ class MyMarketNews(ApiBase):
         if not isinstance(slug_id, str):
             raise TypeError(f"slug_id must be a string")
 
-        _url: str = API_BASE_URL + slug_id
+        _url: str = REPORT_API_BASE_URL + slug_id
         if self.get_data(_url) is None:
             return False
         return True
@@ -120,7 +120,7 @@ class MyMarketNews(ApiBase):
         """
         :return: returns every current report as a dataframe
         """
-        data = self.get_data(API_BASE_URL)
+        data = self.get_data(REPORT_API_BASE_URL)
         self._current_reports = pd.DataFrame(data)
 
         # convert the time series columns to a datetime objects
@@ -138,7 +138,7 @@ class MyMarketNews(ApiBase):
         :param key:
         :return:
         """
-        _url = API_BASE_URL + slug_id + "?q=report_begin_date=" + begin_date
+        _url = REPORT_API_BASE_URL + slug_id + "?q=report_begin_date=" + begin_date
         _data = self.get_data(_url)
 
         x = _data["results"]
@@ -152,7 +152,7 @@ class MyMarketNews(ApiBase):
         don't know if I can make it generalized or if I need to make it specific to the report
         """
 
-        _url = API_BASE_URL + slug_id
+        _url = REPORT_API_BASE_URL + slug_id
         _data = self.get_data(_url)
         print(f"Data for {slug_id} has been fetched")
         print(f"{_data=}")
@@ -172,6 +172,13 @@ class MyMarketNews(ApiBase):
         #         Date_Cheese.append(x[i]["published_date"])
         #
         # print(Butter)
+
+    def get_market_data(self):
+        """
+        This function takes in the user inputs and returns the market data for the selected commodity
+        :return:
+        """
+        pass
 
 
 if __name__ == "__main__":
