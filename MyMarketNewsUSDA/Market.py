@@ -5,30 +5,82 @@ import pandas as pd
 import requests
 
 from MyMarketNewsUSDA.ApiBase import ApiBase
-from constants import *
+from assets.commodities import COMMODITY_DATA, COMMODITY_CLASSES, COMMODITY_REGIONS, COMPOSITE_COMMODITIES, \
+    FRUIT_COMMODITIES, ONIONS_AND_POTATOES_COMMODITIES, VEGETABLES_COMMODITIES, HERBS_COMMODITIES, \
+    ORNAMENTALS_COMMODITIES, HEMP_COMMODITIES
+
+# example call
+# base_url = "https://mymarketnews.ams.usda.gov/get_external_api/result"
+#
+# payload = {
+#     "MT": "/3/",
+#     "CLASS": "Fruit",
+#     "REGN": "National",
+#     "DATE": [
+#         "08/01/2023",
+#         "08/20/2023"
+#     ],
+#     "COMD": [
+#         "All"
+#     ],
+#     "ORGC": "No"
+# }
+#
+# response = requests.post(base_url, json=payload)
+# if response.status_code == 200:
+#     print(response.json())
+# else:
+#     response.raise_for_status()
 
 
-base_url = "https://mymarketnews.ams.usda.gov/get_external_api/result"
+def is_commodity(commodity: str) -> bool:
+    """
+    Checks if the given commodity is a valid commodity
+    :param commodity: The commodity to check
+    :return: True if the commodity is valid, False otherwise
+    """
+    if commodity is None:
+        return False
+    if commodity in FRUIT_COMMODITIES:
+        return True
+    elif commodity in ONIONS_AND_POTATOES_COMMODITIES:
+        return True
+    elif commodity in VEGETABLES_COMMODITIES:
+        return True
+    elif commodity in HERBS_COMMODITIES:
+        return True
+    elif commodity in ORNAMENTALS_COMMODITIES:
+        return True
+    elif commodity in HEMP_COMMODITIES:
+        return True
+    else:
+        return False
 
-payload = {
-    "MT": "/3/",
-    "CLASS": "Fruit",
-    "REGN": "National",
-    "DATE": [
-        "08/01/2023",
-        "08/20/2023"
-    ],
-    "COMD": [
-        "All"
-    ],
-    "ORGC": "No"
-}
 
-response = requests.post(base_url, json=payload)
-if response.status_code == 200:
-    print(response.json())
-else:
-    response.raise_for_status()
+def is_commodity_class(commodity_class: str) -> bool:
+    """
+    Checks if the given commodity class is a valid commodity class
+    :param commodity_class: The commodity class to check
+    :return: True if the commodity class is valid, False otherwise
+    """
+    if commodity_class is None:
+        return False
+    if commodity_class in COMMODITY_CLASSES:
+        return True
+    return False
+
+
+def is_commodity_region(commodity_region: str) -> bool:
+    """
+    Checks if the given commodity region is a valid commodity region
+    :param commodity_region: The commodity region to check
+    :return: True if the commodity region is valid, False otherwise
+    """
+    if commodity_region is None:
+        return False
+    if commodity_region in COMMODITY_REGIONS:
+        return True
+    return False
 
 
 class Market(ApiBase):
@@ -38,7 +90,7 @@ class Market(ApiBase):
 
     def __init__(self, **kwargs):
         super().__init__(api_type="market")
-        self.data = None
+        self.data: pd.DataFrame = pd.DataFrame()
         self.commodity = None
         self.region = None
         self.class_ = None
@@ -61,26 +113,14 @@ class Market(ApiBase):
         :return: None
         """
         commodity = str(commodity).upper()
-        if commodity in FRUIT_COMMODITIES:
-            self.commodity = commodity.capitalize()
-            self.class_ = "Fruit"
-        elif commodity in ONIONS_AND_POTATOES_COMMODITIES:
-            self.commodity = commodity.capitalize()
-            self.class_ = "Onions And Potatoes"
-        elif commodity in VEGETABLES_COMMODITIES:
-            self.commodity = commodity.capitalize()
-            self.class_ = "Vegetables"
-        elif commodity in HERBS_COMMODITIES:
-            self.commodity = commodity.capitalize()
-            self.class_ = "Herbs"
-        elif commodity in ORNAMENTALS_COMMODITIES:
-            self.commodity = commodity.capitalize()
-            self.class_ = "Ornamentals"
-        elif commodity in HEMP_COMMODITIES:
-            self.commodity = commodity.capitalize()
-            self.class_ = "Hemp"
-        else:
-            raise ValueError(f"commodity must be one of the following: {COMPOSITE_COMMODITIES}")
+        if is_commodity(commodity) is False:
+            raise ValueError(
+                f"commodity must be one of the following: {sorted(set([x['commodity'] for x in COMMODITY_DATA]))}")
+        for x in COMMODITY_DATA:
+            if commodity == x['commodity']:
+                self.commodity = commodity
+                self.class_ = x['class']
+                return
 
     def set_region(self, region: str) -> None:
         """
@@ -88,8 +128,9 @@ class Market(ApiBase):
         :param region: The region to be set
         :return: None
         """
-        if region not in COMMODITY_REGIONS:
-            raise ValueError(f"region must be one of the following: {COMMODITY_REGIONS}")
+        region = region.upper()
+        if is_commodity_region(region) is False:
+            raise ValueError(f"region must be one of the following: {sorted(COMMODITY_REGIONS)}")
 
         self.region = region
 
@@ -99,9 +140,9 @@ class Market(ApiBase):
         :param class_: The class to be set
         :return: None
         """
-        class_ = str(class_).capitalize()
-        if class_ not in COMMODITY_CLASSES:
-            raise ValueError(f"class_ must be one of the following: {COMMODITY_CLASSES}")
+        class_ = str(class_).upper()
+        if is_commodity_class(class_) is False:
+            raise ValueError(f"class_ must be one of the following: {sorted(COMMODITY_CLASSES)}")
         self.class_ = class_
 
     def set_organic(self, organic: Union[str, bool]) -> None:
@@ -138,6 +179,14 @@ class Market(ApiBase):
         """
         if isinstance(begin_date, (datetime.date, datetime.datetime)):
             begin_date = begin_date.strftime("%m/%d/%Y")
+        elif isinstance(begin_date, str):
+            try:
+                datetime.datetime.strptime(begin_date, "%m/%d/%Y")
+            except ValueError:
+                raise ValueError(f"begin_date must be in the format MM/DD/YYYY, not {begin_date}")
+        else:
+            raise TypeError(f"begin_date must be of type str, datetime.date, or datetime.datetime,"
+                            f" not {type(begin_date)}")
 
         self.begin_date = begin_date
 
@@ -149,6 +198,14 @@ class Market(ApiBase):
         """
         if isinstance(end_date, (datetime.date, datetime.datetime)):
             end_date = end_date.strftime("%m/%d/%Y")
+        elif isinstance(end_date, str):
+            try:
+                datetime.datetime.strptime(end_date, "%m/%d/%Y")
+            except ValueError:
+                raise ValueError(f"begin_date must be in the format MM/DD/YYYY, not {end_date}")
+        else:
+            raise TypeError(f"begin_date must be of type str, datetime.date, or datetime.datetime,"
+                            f" not {type(end_date)}")
 
         self.end_date = end_date
 
@@ -160,4 +217,13 @@ class Market(ApiBase):
         _payload = self.create_payload(commodity=self.commodity, region=self.region, class_=self.class_,
                                        organic=self.organic, begin_date=self.begin_date, end_date=self.end_date)
         self.data = self.get_data(_url, _payload)
+        print(self.data)
         self.data = pd.DataFrame(self.data)
+
+
+if __name__ == "__main__":
+    pd.set_option('display.max_columns', None)
+    a = Market(commodity="APPLES", region="National", class_="All", organic="No", begin_date="07/01/2023",
+               end_date="08/20/2023")
+    a.refresh_data()
+    print(a.data.head(10))

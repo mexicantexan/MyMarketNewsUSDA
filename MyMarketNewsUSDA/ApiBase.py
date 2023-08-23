@@ -8,6 +8,16 @@ from MyMarketNewsUSDA.ApiKey import ApiKey
 from constants import REPORT_API_BASE_URL, MARKET_API_BASE_URL
 
 
+def convert_api_class(commodity_class: str) -> str:
+    return str(commodity_class).lower().capitalize()
+
+def convert_api_region(region: str) -> str:
+    return str(region).lower().capitalize()
+
+def convert_api_commodity(commodity: str) -> str:
+    return str(commodity).lower().capitalize()
+
+
 class ApiBase(ApiKey):
     """
     Base class for all API methods
@@ -90,11 +100,11 @@ class ApiBase(ApiKey):
         """
         payload = {}
         if kwargs.get('commodity') is not None:
-            payload['CLASS'] = kwargs.get('commodity')
+            payload['COMD'] = convert_api_commodity(kwargs.get('commodity'))
         if kwargs.get('region') is not None:
-            payload['REGN'] = kwargs.get('region')
+            payload['REGN'] = convert_api_region(kwargs.get('region'))
         if kwargs.get('class_') is not None:
-            payload['COMD'] = kwargs.get('class_')
+            payload['CLASS'] = convert_api_class(kwargs.get('class_'))
         if kwargs.get('organic') is not None:
             payload['ORGC'] = kwargs.get('organic')
         if kwargs.get('begin_date') is not None:
@@ -107,6 +117,7 @@ class ApiBase(ApiKey):
             if isinstance(end_date, (datetime.date, datetime.datetime)):
                 end_date = end_date.strftime("%m/%d/%Y")
             payload['DATE'].append(end_date)
+        payload['MT'] = "/3/",
         return payload
 
     def get_data(self, _url: str, payload: dict = None) -> Any:
@@ -122,10 +133,11 @@ class ApiBase(ApiKey):
             if payload is None:
                 payload = {}
             _response = requests.post(_url, json=payload)
+            print("payload", payload)
         else:
             raise NotImplementedError(f"api_type must be either 'report' or 'market', not {self.api_type}. "
                                       f"This type is not yet implemented")
         if _response.status_code == 200:
-            return _response.json()
+            return _response.json()['results']
         else:
             _response.raise_for_status()
