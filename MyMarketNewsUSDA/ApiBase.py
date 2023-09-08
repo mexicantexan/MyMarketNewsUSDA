@@ -8,14 +8,29 @@ from MyMarketNewsUSDA.ApiKey import ApiKey
 from constants import REPORT_API_BASE_URL, MARKET_API_BASE_URL
 
 
+def capitalize_first_letters(s):
+    return ' '.join(word.capitalize() for word in s.split())
+
+
 def convert_api_class(commodity_class: str) -> str:
+    """
+    Converts the commodity class to the format required by the API
+    """
     return str(commodity_class).lower().capitalize()
 
+
 def convert_api_region(region: str) -> str:
+    """
+    Converts the region to the format required by the API
+    """
     return str(region).lower().capitalize()
 
+
 def convert_api_commodity(commodity: str) -> str:
-    return str(commodity).lower().capitalize()
+    """
+    Converts the commodity to the format required by the API
+    """
+    return capitalize_first_letters(commodity)
 
 
 class ApiBase(ApiKey):
@@ -23,7 +38,7 @@ class ApiBase(ApiKey):
     Base class for all API methods
     """
     def __init__(self, api_key: str = None, api_type: str = "report"):
-        super().__init__(api_key)
+        super().__init__(api_key, api_type)
         self.api_type = api_type
 
     def create_api_url(self, **kwargs) -> str:
@@ -84,8 +99,7 @@ class ApiBase(ApiKey):
         """
         return self.api_type
 
-    @staticmethod
-    def create_payload(**kwargs) -> dict:
+    def create_payload(self, **kwargs) -> dict:
         """
         Creates the payload for the Market API call
         :param kwargs: The keyword arguments for the Market API call
@@ -106,7 +120,7 @@ class ApiBase(ApiKey):
         if kwargs.get('class_') is not None:
             payload['CLASS'] = convert_api_class(kwargs.get('class_'))
         if kwargs.get('organic') is not None:
-            payload['ORGC'] = kwargs.get('organic')
+            payload['ORGC'] = str(kwargs.get('organic')).capitalize()
         if kwargs.get('begin_date') is not None:
             begin_date = kwargs.get('begin_date')
             if isinstance(begin_date, datetime.date):
@@ -117,7 +131,8 @@ class ApiBase(ApiKey):
             if isinstance(end_date, (datetime.date, datetime.datetime)):
                 end_date = end_date.strftime("%m/%d/%Y")
             payload['DATE'].append(end_date)
-        payload['MT'] = "/3/",
+        if self.api_type == "market":
+            payload["MT"] = "/3/"
         return payload
 
     def get_data(self, _url: str, payload: dict = None) -> Any:
@@ -133,11 +148,11 @@ class ApiBase(ApiKey):
             if payload is None:
                 payload = {}
             _response = requests.post(_url, json=payload)
-            print("payload", payload)
+            print(_url, payload)
         else:
             raise NotImplementedError(f"api_type must be either 'report' or 'market', not {self.api_type}. "
                                       f"This type is not yet implemented")
         if _response.status_code == 200:
-            return _response.json()['results']
+            return _response.json().get('results', [])
         else:
             _response.raise_for_status()

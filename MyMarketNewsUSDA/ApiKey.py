@@ -8,7 +8,10 @@ class ApiKey:
     """
     This class is used to store the api key for the MyMarketNews USDA API
     """
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None, api_type: str = "report"):
+        if api_type == "market":
+            self.api_key = None
+            return
         if api_key is not None:
             if api_key != "MY_API_KEY":
                 self.api_key = api_key

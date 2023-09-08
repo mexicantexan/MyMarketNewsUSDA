@@ -1,5 +1,6 @@
 """
-This file contains the API key for the API.
+This file contains the constants related to the project
+
 """
 
 MY_MARKET_NEWS_API_KEY = "MY_API_KEY"

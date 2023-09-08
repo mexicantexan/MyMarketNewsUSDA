@@ -2,7 +2,6 @@ import datetime
 from typing import Union
 
 import pandas as pd
-import requests
 
 from MyMarketNewsUSDA.ApiBase import ApiBase
 from assets.commodities import COMMODITY_DATA, COMMODITY_CLASSES, COMMODITY_REGIONS, COMPOSITE_COMMODITIES, \
@@ -85,7 +84,19 @@ def is_commodity_region(commodity_region: str) -> bool:
 
 class Market(ApiBase):
     """
-      This class is used to store the data from a single market and provide methods to manipulate that data
+    This class is used to store the data from a single market and provide methods to manipulate that data
+    In general the market class is meant to be used to access data at https://www.marketnews.usda.gov/mnp/fv-home
+
+    :param commodity: The commodity to be set
+    :param region: The region to be set
+    :param class_: The class to be set
+    :param organic: The organic to be set
+    :param begin_date: The begin_date to be set
+    :param end_date: The end_date to be set
+
+    :return: None
+        To access market data use property 'data'
+        To refresh/get data run method 'refresh_data'
     """
 
     def __init__(self, **kwargs):
@@ -196,7 +207,9 @@ class Market(ApiBase):
         :param end_date: The end_date to be set
         :return: None
         """
-        if isinstance(end_date, (datetime.date, datetime.datetime)):
+        if end_date is None:
+            end_date = datetime.date.today().strftime("%m/%d/%Y")
+        elif isinstance(end_date, (datetime.date, datetime.datetime)):
             end_date = end_date.strftime("%m/%d/%Y")
         elif isinstance(end_date, str):
             try:
@@ -217,13 +230,11 @@ class Market(ApiBase):
         _payload = self.create_payload(commodity=self.commodity, region=self.region, class_=self.class_,
                                        organic=self.organic, begin_date=self.begin_date, end_date=self.end_date)
         self.data = self.get_data(_url, _payload)
-        print(self.data)
         self.data = pd.DataFrame(self.data)
 
 
 if __name__ == "__main__":
     pd.set_option('display.max_columns', None)
-    a = Market(commodity="APPLES", region="National", class_="All", organic="No", begin_date="07/01/2023",
-               end_date="08/20/2023")
+    a = Market(commodity="LETTUCE, GREEN LEAF", region="National", class_="All", organic="No", begin_date="07/01/2021")
     a.refresh_data()
     print(a.data.head(10))
