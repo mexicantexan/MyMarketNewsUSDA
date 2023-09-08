@@ -8,7 +8,7 @@ from assets.commodities import COMMODITY_DATA, COMMODITY_CLASSES, COMMODITY_REGI
     FRUIT_COMMODITIES, ONIONS_AND_POTATOES_COMMODITIES, VEGETABLES_COMMODITIES, HERBS_COMMODITIES, \
     ORNAMENTALS_COMMODITIES, HEMP_COMMODITIES
 
-# example call
+# example call that we are trying to mimic
 # base_url = "https://mymarketnews.ams.usda.gov/get_external_api/result"
 #
 # payload = {
